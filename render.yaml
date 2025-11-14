@@ -1,0 +1,45 @@
+# Render.com Konfiguration für Google Calendar zu Tasks Sync
+
+services:
+  # Cron Job für tägliche Synchronisation
+  - type: cron
+    name: calendar-tasks-sync
+    env: node
+    plan: free
+    schedule: "0 7 * * *"  # Täglich um 7:00 UTC
+    buildCommand: npm install
+    startCommand: node sync-calendar-to-tasks.js
+
+    # Environment Variables (müssen in Render Dashboard gesetzt werden)
+    envVars:
+      - key: GOOGLE_CLIENT_ID
+        sync: false  # Muss manuell gesetzt werden
+
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false  # Muss manuell gesetzt werden
+
+      - key: GOOGLE_REFRESH_TOKEN
+        sync: false  # Muss manuell gesetzt werden
+
+      - key: CALENDAR_ID
+        value: primary
+
+      - key: TASKS_LIST_ID
+        sync: false  # Muss manuell gesetzt werden
+
+      - key: NODE_ENV
+        value: production
+
+# Alternative: Web Service mit manuellem Trigger
+# Kommentieren Sie den Cron Job aus und verwenden Sie stattdessen:
+#
+# services:
+#   - type: web
+#     name: calendar-tasks-sync-api
+#     env: node
+#     plan: free
+#     buildCommand: npm install
+#     startCommand: node -e "const express = require('express'); const app = express(); app.get('/sync', async (req, res) => { const { syncCalendarToTasks, getOAuth2Client } = require('./sync-calendar-to-tasks'); const auth = getOAuth2Client(); const result = await syncCalendarToTasks(auth); res.json(result); }); app.listen(process.env.PORT || 3000);"
+#
+#     envVars:
+#       # Gleiche Environment Variables wie oben

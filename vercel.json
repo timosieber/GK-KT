@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "name": "calendar-tasks-sync",
+  "description": "Google Calendar zu Google Tasks Synchronisation",
+  "functions": {
+    "api/**/*.js": {
+      "memory": 1024,
+      "maxDuration": 10
+    }
+  },
+  "crons": [{
+    "path": "/api/sync",
+    "schedule": "0 7 * * *"
+  }],
+  "env": {
+    "CALENDAR_ID": "primary"
+  },
+  "build": {
+    "env": {
+      "NODE_ENV": "production"
+    }
+  }
+}

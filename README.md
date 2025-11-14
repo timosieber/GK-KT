@@ -461,6 +461,400 @@ netlify deploy --prod
 ✅ **Logs & Monitoring** - Eingebautes Logging
 ✅ **Sicher** - HTTPS by default
 
+## 🌐 Weitere kostenlose Hosting-Optionen
+
+Neben Netlify gibt es mehrere weitere **100% kostenlose** Plattformen für das Hosting von Node.js Serverless Functions mit Cron-Job-Unterstützung:
+
+### Vergleichstabelle
+
+| Plattform | Free Tier | Cron Support | Setup-Schwierigkeit | Empfehlung |
+|-----------|-----------|--------------|---------------------|------------|
+| **Netlify** | 125k Requests/Monat | ⚠️ Nur Pro ($19/mo) | ⭐ Einfach | ✅ Mit externem Cron |
+| **Vercel** | 100 GB Bandwidth | ✅ Ja (Cron Jobs) | ⭐ Einfach | ✅✅ Empfohlen! |
+| **Render** | 750 Stunden/Monat | ✅ Ja (Cron Jobs) | ⭐⭐ Mittel | ✅✅ Sehr gut! |
+| **Railway** | $5 Guthaben/Monat | ✅ Ja | ⭐⭐ Mittel | ✅ Solide Option |
+| **Cloudflare Workers** | 100k Requests/Tag | ✅ Ja (Cron Triggers) | ⭐⭐⭐ Komplex | ✅ Für Fortgeschrittene |
+| **AWS Lambda** | 1M Requests/Monat | ✅ Ja (EventBridge) | ⭐⭐⭐⭐ Schwer | ⚠️ Komplex |
+| **Google Cloud Run** | 2M Requests/Monat | ✅ Ja (Cloud Scheduler) | ⭐⭐⭐ Komplex | ✅ Großzügige Limits |
+| **Deno Deploy** | 100k Requests/Tag | ✅ Ja | ⭐⭐ Mittel | ⚠️ Deno, nicht Node.js |
+| **Fly.io** | 3 VMs kostenlos | ✅ Ja | ⭐⭐⭐ Komplex | ✅ Gute Alternative |
+
+---
+
+### 🥇 Option 1: Vercel (Empfohlen!)
+
+**Warum Vercel?**
+- ✅ Native Cron Jobs Support im Free Tier
+- ✅ Einfachstes Setup
+- ✅ 100 GB Bandwidth/Monat kostenlos
+- ✅ Automatische Deployments von GitHub
+
+#### Setup auf Vercel
+
+**1. Vercel Function erstellen**
+
+Erstellen Sie `api/sync.js`:
+
+```javascript
+const { google } = require('googleapis');
+
+// Konfiguration aus Environment Variables
+const CONFIG = {
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
+  GOOGLE_REFRESH_TOKEN: process.env.GOOGLE_REFRESH_TOKEN,
+  CALENDAR_ID: process.env.CALENDAR_ID || 'primary',
+  TASKS_LIST_ID: process.env.TASKS_LIST_ID,
+};
+
+// Ihre Sync-Logik hier (gleich wie in sync-calendar-to-tasks.js)
+// ... (kompletter Code wie zuvor)
+
+module.exports = async (req, res) => {
+  try {
+    const auth = getOAuth2Client();
+    const result = await syncCalendarToTasks(auth);
+
+    res.status(200).json({
+      success: true,
+      message: 'Sync erfolgreich',
+      result: result
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+```
+
+**2. `vercel.json` erstellen**
+
+```json
+{
+  "crons": [{
+    "path": "/api/sync",
+    "schedule": "0 7 * * *"
+  }]
+}
+```
+
+**3. Deployen**
+
+```bash
+# Vercel CLI installieren
+npm i -g vercel
+
+# Anmelden
+vercel login
+
+# Deployen
+vercel
+
+# Environment Variables setzen
+vercel env add GOOGLE_CLIENT_ID
+vercel env add GOOGLE_CLIENT_SECRET
+vercel env add GOOGLE_REFRESH_TOKEN
+vercel env add CALENDAR_ID
+vercel env add TASKS_LIST_ID
+
+# Production deployment
+vercel --prod
+```
+
+**Fertig!** Die Function läuft nun täglich um 7:00 UTC automatisch.
+
+---
+
+### 🥈 Option 2: Render
+
+**Warum Render?**
+- ✅ Native Cron Jobs Support
+- ✅ 750 kostenlose Stunden/Monat
+- ✅ Einfaches Dashboard
+- ✅ PostgreSQL-Datenbank inklusive (falls später benötigt)
+
+#### Setup auf Render
+
+**1. Render Account erstellen**
+- Gehen Sie zu [render.com](https://render.com/)
+- Sign up mit GitHub
+
+**2. Neuen Cron Job erstellen**
+1. Dashboard > "New" > "Cron Job"
+2. Repository auswählen
+3. **Konfiguration:**
+   - Name: `calendar-tasks-sync`
+   - Command: `node sync-calendar-to-tasks.js`
+   - Schedule: `0 7 * * *` (täglich um 7:00 UTC)
+
+**3. Environment Variables setzen**
+Im Render Dashboard unter "Environment":
+```
+GOOGLE_CLIENT_ID=...
+GOOGLE_CLIENT_SECRET=...
+GOOGLE_REFRESH_TOKEN=...
+CALENDAR_ID=primary
+TASKS_LIST_ID=...
+```
+
+**Fertig!** Render führt den Cron Job automatisch täglich aus.
+
+---
+
+### 🥉 Option 3: Railway
+
+**Warum Railway?**
+- ✅ $5 Guthaben/Monat kostenlos
+- ✅ Sehr entwicklerfreundlich
+- ✅ Unterstützt alle Node.js Features
+
+#### Setup auf Railway
+
+**1. Railway Account**
+- Gehen Sie zu [railway.app](https://railway.app/)
+- Sign up mit GitHub
+
+**2. Neues Projekt**
+```bash
+# Railway CLI installieren
+npm i -g @railway/cli
+
+# Anmelden
+railway login
+
+# Projekt initialisieren
+railway init
+
+# Environment Variables setzen
+railway variables set GOOGLE_CLIENT_ID="..."
+railway variables set GOOGLE_CLIENT_SECRET="..."
+railway variables set GOOGLE_REFRESH_TOKEN="..."
+railway variables set CALENDAR_ID="primary"
+railway variables set TASKS_LIST_ID="..."
+
+# Deployen
+railway up
+```
+
+**3. Cron Job einrichten**
+
+Erstellen Sie `railway.json`:
+
+```json
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "NIXPACKS"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "restartPolicyType": "ON_FAILURE",
+    "startCommand": "node scheduler.js"
+  }
+}
+```
+
+Verwenden Sie dann das `scheduler.js` Script mit node-cron aus der README.
+
+---
+
+### ⚡ Option 4: Cloudflare Workers
+
+**Warum Cloudflare?**
+- ✅ 100.000 Requests/Tag kostenlos
+- ✅ Extrem schnell (Edge Computing)
+- ✅ Native Cron Triggers
+
+⚠️ **Hinweis:** Cloudflare Workers verwenden eine angepasste JavaScript-Runtime. `googleapis` muss durch Fetch-Requests ersetzt werden.
+
+#### Setup auf Cloudflare
+
+**1. Wrangler CLI installieren**
+
+```bash
+npm install -g wrangler
+
+# Anmelden
+wrangler login
+```
+
+**2. Worker erstellen**
+
+```bash
+wrangler init calendar-sync
+cd calendar-sync
+```
+
+**3. `wrangler.toml` konfigurieren**
+
+```toml
+name = "calendar-sync"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[triggers]
+crons = ["0 7 * * *"]
+
+[vars]
+CALENDAR_ID = "primary"
+```
+
+**4. Secrets setzen**
+
+```bash
+wrangler secret put GOOGLE_CLIENT_ID
+wrangler secret put GOOGLE_CLIENT_SECRET
+wrangler secret put GOOGLE_REFRESH_TOKEN
+wrangler secret put TASKS_LIST_ID
+```
+
+**5. Deployen**
+
+```bash
+wrangler deploy
+```
+
+**Hinweis:** Der Code muss angepasst werden, da Cloudflare Workers keine Node.js-Module wie `googleapis` unterstützen. Sie müssen direkt mit der Google API über `fetch()` kommunizieren.
+
+---
+
+### 🔥 Option 5: Google Cloud Run + Cloud Scheduler
+
+**Warum Google Cloud?**
+- ✅ 2 Millionen Requests/Monat kostenlos
+- ✅ Sehr großzügige Limits
+- ✅ Professionelles Ökosystem
+
+#### Setup auf Google Cloud
+
+**1. Google Cloud Account**
+- Gehen Sie zu [cloud.google.com](https://cloud.google.com/)
+- Aktivieren Sie Cloud Run und Cloud Scheduler APIs
+
+**2. Dockerfile erstellen**
+
+```dockerfile
+FROM node:18-slim
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install --production
+
+COPY . .
+
+CMD ["node", "sync-calendar-to-tasks.js"]
+```
+
+**3. Deployen**
+
+```bash
+# Google Cloud CLI installieren
+# https://cloud.google.com/sdk/docs/install
+
+# Anmelden
+gcloud auth login
+
+# Projekt erstellen
+gcloud projects create mein-calendar-sync
+
+# Cloud Run deployen
+gcloud run deploy calendar-sync \
+  --source . \
+  --platform managed \
+  --region europe-west1 \
+  --allow-unauthenticated \
+  --set-env-vars GOOGLE_CLIENT_ID="...",GOOGLE_CLIENT_SECRET="...",GOOGLE_REFRESH_TOKEN="...",CALENDAR_ID="primary",TASKS_LIST_ID="..."
+
+# Cloud Scheduler Job erstellen
+gcloud scheduler jobs create http calendar-daily-sync \
+  --schedule="0 7 * * *" \
+  --uri="https://calendar-sync-xxx.run.app" \
+  --http-method=GET \
+  --location=europe-west1
+```
+
+---
+
+### 🦕 Option 6: Deno Deploy
+
+**Warum Deno Deploy?**
+- ✅ 100.000 Requests/Tag kostenlos
+- ✅ Edge Computing (sehr schnell)
+- ✅ Einfaches Deployment
+
+⚠️ **Hinweis:** Verwendet Deno statt Node.js. Code muss angepasst werden.
+
+#### Setup auf Deno Deploy
+
+```bash
+# Deno installieren
+curl -fsSL https://deno.land/install.sh | sh
+
+# Projekt deployen
+deno deploy --project=calendar-sync sync.ts
+```
+
+**`deno.json` für Cron:**
+
+```json
+{
+  "tasks": {
+    "cron": "deno run --allow-net --allow-env sync.ts"
+  },
+  "cron": ["0 7 * * *"]
+}
+```
+
+---
+
+## 💡 Empfehlung: Was soll ich wählen?
+
+### Für Anfänger:
+**🥇 Vercel** - Einfachstes Setup, native Cron Jobs, perfekt für Einsteiger
+
+### Für mehr Kontrolle:
+**🥈 Render** - Sehr gutes Dashboard, einfache Verwaltung, native Cron Jobs
+
+### Für maximale Free Tier Limits:
+**🏆 Google Cloud Run** - 2 Millionen Requests/Monat, sehr großzügig
+
+### Für schnellste Performance:
+**⚡ Cloudflare Workers** - Edge Computing, aber komplexere Einrichtung
+
+### Für vollständige Node.js-Kompatibilität:
+**🚂 Railway** - Volle Node.js-Unterstützung, sehr entwicklerfreundlich
+
+---
+
+## 🆚 Netlify vs. Vercel vs. Render - Direkter Vergleich
+
+| Feature | Netlify (Free) | Vercel (Free) | Render (Free) |
+|---------|----------------|---------------|---------------|
+| **Cron Jobs** | ❌ Nein (nur Pro) | ✅ Ja | ✅ Ja |
+| **Requests/Monat** | 125.000 | Unbegrenzt* | Unbegrenzt* |
+| **Bandwidth** | 100 GB | 100 GB | 100 GB |
+| **Build Minutes** | 300 Min/Mo | Unbegrenzt | 500 Min/Mo |
+| **GitHub Integration** | ✅ | ✅ | ✅ |
+| **Custom Domains** | ✅ | ✅ | ✅ |
+| **Environment Variables** | ✅ | ✅ | ✅ |
+| **Logs & Monitoring** | ✅ | ✅ | ✅ |
+| **Setup-Schwierigkeit** | ⭐ Einfach | ⭐ Einfach | ⭐⭐ Mittel |
+
+*Begrenzt durch Ausführungszeit und Ressourcen
+
+### 🎯 Finale Empfehlung
+
+Für Ihr Google Calendar → Tasks Sync Projekt:
+
+1. **Beste Wahl:** **Vercel** - Native Cron Jobs, einfachstes Setup
+2. **Alternative:** **Render** - Ebenfalls native Cron Jobs, gutes Dashboard
+3. **Mit Netlify:** Kombinieren Sie mit **GitHub Actions** (wie bereits konfiguriert)
+
+Alle drei Optionen sind **100% kostenlos** und mehr als ausreichend für eine tägliche Synchronisation!
+
 ## 📊 Ausgabe
 
 Das Script gibt detaillierte Informationen aus:
