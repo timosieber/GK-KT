@@ -4,7 +4,7 @@ Synchronisieren Sie automatisch alle Termine des heutigen Tages aus Ihrem Google
 
 ## ✨ Features
 
-- ✅ Automatische tägliche Synchronisation (jeden Morgen um 7:00 Uhr)
+- ✅ Automatische tägliche Synchronisation (jeden Morgen um 5:00 Uhr)
 - ✅ Verhindert Duplikate - erstellt keine doppelten Tasks
 - ✅ Unterstützt ganztägige und terminierte Events
 - ✅ Fügt alle wichtigen Informationen hinzu (Zeit, Ort, Beschreibung)
@@ -181,7 +181,7 @@ cd GK-KT
 2. Klicken Sie oben rechts auf die drei Punkte **"..."** → **"Redeploy"**
 3. Bestätigen Sie mit **"Redeploy"**
 
-**Fertig! 🎉** Ihr Sync läuft jetzt täglich automatisch um 7:00 UTC (8:00 MEZ / 9:00 MESZ)!
+**Fertig! 🎉** Ihr Sync läuft jetzt täglich automatisch um 5:00 UTC (6:00 MEZ / 7:00 MESZ)!
 
 ---
 
@@ -233,12 +233,12 @@ Die `vercel.json` konfiguriert einen Cron Job:
 {
   "crons": [{
     "path": "/api/sync",
-    "schedule": "0 7 * * *"
+    "schedule": "0 5 * * *"
   }]
 }
 ```
 
-**Bedeutet:** Täglich um 7:00 UTC (= 8:00 MEZ Winter / 9:00 MESZ Sommer)
+**Bedeutet:** Täglich um 5:00 UTC (= 6:00 MEZ Winter / 7:00 MESZ Sommer)
 
 **Andere Zeiten:**
 - `0 6 * * *` = 6:00 UTC (7:00/8:00 Lokalzeit)
@@ -304,7 +304,7 @@ Der Free Tier ist **mehr als ausreichend** für diesen Use Case!
 
 ## 🎯 Was macht das Script?
 
-1. **Jeden Morgen um 7:00 Uhr:**
+1. **Jeden Morgen um 5:00 Uhr:**
    - Ruft alle Events des heutigen Tages aus Ihrem Google Calendar ab
    - Prüft, ob bereits Tasks für diese Events existieren
    - Erstellt neue Tasks in Google Tasks für jedes Event (falls noch nicht vorhanden)
@@ -336,7 +336,7 @@ Bearbeiten Sie `vercel.json`:
 {
   "crons": [{
     "path": "/api/sync",
-    "schedule": "0 6 * * *"  ← Ändere hier die Zeit (6:00 UTC)
+    "schedule": "0 5 * * *"  ← Aktuelle Zeit (5:00 UTC)
   }]
 }
 ```
@@ -349,14 +349,14 @@ Bearbeiten Sie `vercel.json`:
 │ │ │ ┌─── Monat (1-12)
 │ │ │ │ ┌─── Wochentag (0-7, 0 und 7 = Sonntag)
 │ │ │ │ │
-0 7 * * *  = Täglich um 7:00 UTC
+0 5 * * *  = Täglich um 5:00 UTC
 ```
 
 **Beispiele:**
 - `0 6 * * *` - Täglich um 6:00 UTC
-- `0 9 * * *` - Täglich um 9:00 UTC
+- `0 7 * * *` - Täglich um 7:00 UTC
 - `0 8 * * 1-5` - Werktags um 8:00 UTC
-- `0 7 * * 1,3,5` - Montag, Mittwoch, Freitag um 7:00 UTC
+- `0 9 * * 1,3,5` - Montag, Mittwoch, Freitag um 9:00 UTC
 
 Nach Änderung pushen Sie den Code zu GitHub, Vercel deployed automatisch!
 
@@ -535,7 +535,7 @@ Siehe `DEPLOYMENT.md` für Anleitungen zu:
    🌐 Vercel Function: Calendar → Tasks Sync
 ═══════════════════════════════════════════════════════════════
 
-⏰ Ausgeführt am: 14.11.2025, 07:00:15
+⏰ Ausgeführt am: 14.11.2025, 05:00:15
 
 📅 Rufe Events für heute ab...
 ✅ 3 Event(s) gefunden

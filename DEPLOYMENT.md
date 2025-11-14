@@ -36,7 +36,7 @@ vercel --prod
 3. Environment Variables setzen
 4. Deploy!
 
-Die `vercel.json` ist bereits konfiguriert für tägliche Ausführung um 7:00 UTC.
+Die `vercel.json` ist bereits konfiguriert für tägliche Ausführung um 5:00 UTC.
 
 ---
 
@@ -76,7 +76,7 @@ Die `render.yaml` ist bereits konfiguriert.
 **GitHub Actions einrichten:**
 1. GitHub Repository > Settings > Secrets
 2. Neues Secret: `NETLIFY_FUNCTION_URL` = `https://ihre-site.netlify.app/sync`
-3. Fertig! Läuft täglich um 7:00 UTC
+3. Fertig! Läuft täglich um 5:00 UTC
 
 Die `.github/workflows/daily-sync.yml` und `netlify.toml` sind bereits konfiguriert.
 
