@@ -6,7 +6,7 @@ services:
     name: calendar-tasks-sync
     env: node
     plan: free
-    schedule: "0 7 * * *"  # Täglich um 7:00 UTC
+    schedule: "0 5 * * *"  # Täglich um 5:00 UTC
     buildCommand: npm install
     startCommand: node sync-calendar-to-tasks.js
 

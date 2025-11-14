@@ -1,12 +1,12 @@
 # GitHub Actions Workflow für tägliche Calendar-to-Tasks Synchronisation
-# Diese Workflow-Datei triggert eine Netlify Function täglich um 7:00 UTC
+# Diese Workflow-Datei triggert eine Netlify Function täglich um 5:00 UTC
 
 name: Daily Calendar to Tasks Sync
 
 on:
-  # Scheduled Trigger - Täglich um 7:00 UTC
+  # Scheduled Trigger - Täglich um 5:00 UTC
   schedule:
-    - cron: '0 7 * * *'  # 7:00 UTC = 8:00 MEZ / 9:00 MESZ
+    - cron: '0 5 * * *'  # 5:00 UTC = 6:00 MEZ / 7:00 MESZ
 
   # Ermöglicht manuelles Triggern über GitHub UI
   workflow_dispatch:
@@ -53,7 +53,7 @@ jobs:
 #    Value: https://ihre-site-name.netlify.app/sync
 #
 # 5. Committen Sie diese Datei und pushen Sie sie zu GitHub
-# 6. Der Workflow wird ab jetzt täglich um 7:00 UTC ausgeführt
+# 6. Der Workflow wird ab jetzt täglich um 5:00 UTC ausgeführt
 #
 # Hinweise:
 # - Sie können den Workflow auch manuell triggern: Actions > Daily Calendar Sync > Run workflow
