@@ -236,6 +236,231 @@ cron.schedule('0 7 * * *', async () => {
 console.log('Scheduler gestartet. Wartet auf geplante Ausführung...');
 ```
 
+## ☁️ Auf Netlify hosten (Kostenlos)
+
+Sie können dieses Script **kostenlos** auf Netlify hosten und als Serverless Function ausführen lassen. Das hat mehrere Vorteile:
+- ✅ Kein eigener Server nötig
+- ✅ Automatische Ausführung per Scheduled Function
+- ✅ Kostenlos im Free Tier (mit Einschränkungen)
+- ✅ Einfaches Deployment über GitHub
+
+### Netlify Free vs. Pro
+
+**Free Tier:**
+- ✅ Netlify Functions sind verfügbar
+- ❌ Scheduled Functions **nicht** verfügbar (nur in Pro/Business/Enterprise)
+- ✅ Manuelle Ausführung per HTTP-Request möglich
+- ✅ Kann mit externem Cron-Service kombiniert werden (siehe unten)
+
+**Pro Tier ($19/Monat):**
+- ✅ Scheduled Functions verfügbar
+- ✅ Automatische tägliche Ausführung
+- ✅ Längere Function-Laufzeit
+
+### Setup auf Netlify (Free Tier)
+
+#### 1. Repository auf GitHub pushen
+
+```bash
+# Falls noch nicht geschehen
+git remote add origin https://github.com/IHR_USERNAME/IHR_REPO.git
+git push -u origin main
+```
+
+#### 2. Netlify Account erstellen
+
+1. Gehen Sie zu [netlify.com](https://www.netlify.com/)
+2. Klicken Sie auf "Sign up"
+3. Melden Sie sich mit GitHub an
+
+#### 3. Neues Site auf Netlify erstellen
+
+1. Klicken Sie auf "Add new site" > "Import an existing project"
+2. Wählen Sie "GitHub" und autorisieren Sie Netlify
+3. Wählen Sie Ihr Repository aus
+4. **Build Settings:**
+   - Build command: `npm install`
+   - Publish directory: (leer lassen)
+   - Functions directory: `netlify/functions`
+5. Klicken Sie auf "Deploy site"
+
+#### 4. Environment Variables konfigurieren
+
+Gehen Sie zu: **Site settings** > **Environment variables** > **Add a variable**
+
+Fügen Sie folgende Variablen hinzu:
+
+```
+GOOGLE_CLIENT_ID         → ihre_client_id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET     → ihr_client_secret
+GOOGLE_REFRESH_TOKEN     → ihr_refresh_token
+CALENDAR_ID              → primary
+TASKS_LIST_ID            → ihre_tasks_list_id
+```
+
+**Wichtig:** Klicken Sie nach jeder Variable auf "Create variable"!
+
+#### 5. Function testen (Manueller Trigger)
+
+Nach dem Deployment finden Sie Ihre Function unter:
+
+```
+https://ihre-site-name.netlify.app/.netlify/functions/sync-calendar
+```
+
+Sie können die Function auch über den kürzeren Alias aufrufen:
+
+```
+https://ihre-site-name.netlify.app/sync
+```
+
+**Testen Sie die Function:**
+
+```bash
+curl https://ihre-site-name.netlify.app/sync
+```
+
+Oder öffnen Sie die URL einfach in Ihrem Browser.
+
+#### 6. Logs ansehen
+
+Um zu sehen, ob die Function erfolgreich läuft:
+
+1. Gehen Sie zu Ihrem Netlify Dashboard
+2. Klicken Sie auf Ihre Site
+3. Gehen Sie zu "Functions"
+4. Klicken Sie auf "sync-calendar"
+5. Sehen Sie sich die Logs an
+
+### Automatische Ausführung mit externem Cron (Free Tier)
+
+Da Scheduled Functions im Free Tier nicht verfügbar sind, können Sie einen kostenlosen externen Cron-Service nutzen:
+
+#### Option A: cron-job.org (Empfohlen)
+
+1. Gehen Sie zu [cron-job.org](https://cron-job.org/)
+2. Erstellen Sie einen kostenlosen Account
+3. Klicken Sie auf "Create Cronjob"
+4. **Konfiguration:**
+   - Title: `Calendar to Tasks Sync`
+   - URL: `https://ihre-site-name.netlify.app/sync`
+   - Execution schedule: `Every day at 07:00`
+   - Timezone: Wählen Sie Ihre Zeitzone (z.B. Europe/Berlin)
+5. Klicken Sie auf "Create Cronjob"
+
+**Fertig!** Der Cron-Job ruft jetzt täglich Ihre Netlify Function auf.
+
+#### Option B: EasyCron
+
+1. Gehen Sie zu [easycron.com](https://www.easycron.com/)
+2. Erstellen Sie einen Free Account
+3. Erstellen Sie einen neuen Cron Job:
+   - URL: `https://ihre-site-name.netlify.app/sync`
+   - Cron Expression: `0 7 * * *` (täglich um 7:00)
+   - HTTP Method: GET
+   - Timezone: Ihre Zeitzone
+
+#### Option C: GitHub Actions (kostenlos)
+
+Erstellen Sie `.github/workflows/daily-sync.yml` in Ihrem Repository:
+
+```yaml
+name: Daily Calendar Sync
+
+on:
+  schedule:
+    # Täglich um 7:00 UTC (8:00 MEZ / 9:00 MESZ)
+    - cron: '0 7 * * *'
+  workflow_dispatch:  # Ermöglicht manuelles Triggern
+
+jobs:
+  trigger-sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Netlify Function
+        run: |
+          curl -X GET https://ihre-site-name.netlify.app/sync
+
+      - name: Check if successful
+        run: echo "Sync triggered successfully!"
+```
+
+Ändern Sie `ihre-site-name` zu Ihrem tatsächlichen Netlify Site-Namen.
+
+**Hinweise zu GitHub Actions:**
+- ⏱️ Cron-Jobs können bis zu 10 Minuten verspätet sein
+- 🆓 Komplett kostenlos für öffentliche Repositories
+- 🔒 Auch kostenlos für private Repos (2000 Minuten/Monat free)
+
+### Automatische Ausführung mit Netlify Pro
+
+Falls Sie Netlify Pro haben, ist die Konfiguration bereits in `netlify.toml` enthalten:
+
+```toml
+[[functions]]
+  path = "/sync-calendar"
+  schedule = "0 7 * * *"  # Täglich um 7:00 UTC
+```
+
+Die Function wird dann automatisch jeden Tag ausgeführt, ohne externe Services!
+
+### Netlify Function Limits
+
+**Free Tier:**
+- 125.000 Function-Aufrufe pro Monat
+- 100 Stunden Function-Laufzeit pro Monat
+- Timeout: 10 Sekunden pro Aufruf
+
+**Pro Tier:**
+- 2 Millionen Function-Aufrufe pro Monat
+- 100 Stunden Function-Laufzeit pro Monat
+- Timeout: 26 Sekunden pro Aufruf
+
+Für eine tägliche Synchronisation (1x pro Tag = 30x pro Monat) ist der Free Tier mehr als ausreichend!
+
+### Deployment-Updates
+
+Wenn Sie Änderungen am Code vornehmen:
+
+1. Committen und pushen Sie die Änderungen zu GitHub:
+   ```bash
+   git add .
+   git commit -m "Update sync script"
+   git push
+   ```
+
+2. Netlify erkennt automatisch den Push und deployed die neue Version!
+
+### Netlify CLI (Optional)
+
+Für fortgeschrittene Benutzer können Sie auch das Netlify CLI verwenden:
+
+```bash
+# Netlify CLI installieren
+npm install -g netlify-cli
+
+# Anmelden
+netlify login
+
+# In Ihrem Projekt-Ordner
+netlify init
+
+# Function lokal testen
+netlify dev
+
+# Manuell deployen
+netlify deploy --prod
+```
+
+### Vorteile von Netlify
+
+✅ **Einfaches Setup** - In wenigen Minuten einsatzbereit
+✅ **Automatische Deployments** - Bei jedem Git Push
+✅ **Kostenlos** - Free Tier reicht für tägliche Syncs
+✅ **Skalierbar** - Automatisches Scaling
+✅ **Logs & Monitoring** - Eingebautes Logging
+✅ **Sicher** - HTTPS by default
+
 ## 📊 Ausgabe
 
 Das Script gibt detaillierte Informationen aus:

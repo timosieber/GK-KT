@@ -1,0 +1,63 @@
+# GitHub Actions Workflow für tägliche Calendar-to-Tasks Synchronisation
+# Diese Workflow-Datei triggert eine Netlify Function täglich um 7:00 UTC
+
+name: Daily Calendar to Tasks Sync
+
+on:
+  # Scheduled Trigger - Täglich um 7:00 UTC
+  schedule:
+    - cron: '0 7 * * *'  # 7:00 UTC = 8:00 MEZ / 9:00 MESZ
+
+  # Ermöglicht manuelles Triggern über GitHub UI
+  workflow_dispatch:
+
+jobs:
+  trigger-netlify-function:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Netlify Function
+        run: |
+          echo "🚀 Triggere Netlify Function..."
+          response=$(curl -s -w "\n%{http_code}" -X GET "${{ secrets.NETLIFY_FUNCTION_URL }}")
+          http_code=$(echo "$response" | tail -n 1)
+          body=$(echo "$response" | head -n -1)
+
+          echo "📡 Response Code: $http_code"
+          echo "📄 Response Body: $body"
+
+          if [ "$http_code" -eq 200 ]; then
+            echo "✅ Synchronisation erfolgreich!"
+          else
+            echo "❌ Synchronisation fehlgeschlagen!"
+            exit 1
+          fi
+
+      - name: Send notification on failure
+        if: failure()
+        run: |
+          echo "❌ Die Synchronisation ist fehlgeschlagen!"
+          echo "Bitte überprüfen Sie die Logs und die Netlify Function."
+
+# ============================================================================
+# SETUP ANLEITUNG
+# ============================================================================
+#
+# Um diesen Workflow zu aktivieren:
+#
+# 1. Gehen Sie zu Ihrem GitHub Repository
+# 2. Klicken Sie auf "Settings" > "Secrets and variables" > "Actions"
+# 3. Klicken Sie auf "New repository secret"
+# 4. Erstellen Sie ein Secret:
+#    Name: NETLIFY_FUNCTION_URL
+#    Value: https://ihre-site-name.netlify.app/sync
+#
+# 5. Committen Sie diese Datei und pushen Sie sie zu GitHub
+# 6. Der Workflow wird ab jetzt täglich um 7:00 UTC ausgeführt
+#
+# Hinweise:
+# - Sie können den Workflow auch manuell triggern: Actions > Daily Calendar Sync > Run workflow
+# - Die Ausführungszeit kann bis zu 10 Minuten variieren
+# - Sie erhalten eine E-Mail bei Fehlern (wenn aktiviert in GitHub Settings)
+#
+# ============================================================================

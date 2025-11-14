@@ -1,0 +1,58 @@
+# Netlify Konfiguration für Google Calendar zu Tasks Sync
+
+[build]
+  # Für dieses Projekt brauchen wir kein Build, da es nur Functions sind
+  # Aber wir installieren die Dependencies
+  command = "npm install"
+  functions = "netlify/functions"
+
+[functions]
+  # Node.js Version
+  node_bundler = "esbuild"
+  # Timeout für Functions (max 10 Sekunden im Free Tier)
+  # Für Pro/Business: bis zu 26 Sekunden
+  # Für Enterprise: bis zu 60 Sekunden
+
+# ============================================================================
+# SCHEDULED FUNCTION - Täglich um 7:00 Uhr UTC ausführen
+# ============================================================================
+# Hinweis: Scheduled Functions sind nur im Pro/Business/Enterprise Plan verfügbar
+# Im Free Tier können Sie die Function manuell triggern oder externe Cron-Services nutzen
+
+[[functions]]
+  path = "/sync-calendar"
+  schedule = "0 7 * * *"  # Täglich um 7:00 UTC (8:00 MEZ im Winter, 9:00 MESZ im Sommer)
+  # Weitere Schedule-Beispiele:
+  # "0 6 * * *"  = 6:00 UTC
+  # "0 8 * * *"  = 8:00 UTC
+  # "0 */6 * * *" = Alle 6 Stunden
+  # "0 0 * * 1"  = Jeden Montag um Mitternacht
+
+# ============================================================================
+# ALTERNATIVE: Manuelles Triggern (für Free Tier)
+# ============================================================================
+# Im Free Tier können Sie die Function manuell triggern über:
+# https://ihre-site.netlify.app/.netlify/functions/sync-calendar
+#
+# Oder mit einem externen Cron-Service wie:
+# - cron-job.org (kostenlos)
+# - EasyCron (kostenlos)
+# - GitHub Actions (kostenlos)
+
+# ============================================================================
+# REDIRECT RULES (Optional)
+# ============================================================================
+[[redirects]]
+  from = "/sync"
+  to = "/.netlify/functions/sync-calendar"
+  status = 200
+  force = true
+
+# ============================================================================
+# HEADERS (Optional - für bessere Sicherheit)
+# ============================================================================
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
